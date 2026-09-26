@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { AiOutlineMenu, AiOutlineShoppingCart } from "react-icons/ai"
+import { AiOutlineMenu, AiOutlineShoppingCart, AiOutlineClose } from "react-icons/ai"
 import { BsChevronDown } from "react-icons/bs"
 import { useSelector } from "react-redux"
 import { Link, matchPath, useLocation } from "react-router-dom"
@@ -11,25 +11,6 @@ import { categories } from "../../services/apis"
 import { ACCOUNT_TYPE } from "../../utils/constants"
 import ProfileDropdown from "../core/Auth/ProfileDropdown"
 
-// const subLinks = [
-//   {
-//     title: "Python",
-//     link: "/catalog/python",
-//   },
-//   {
-//     title: "javascript",
-//     link: "/catalog/javascript",
-//   },
-//   {
-//     title: "web-development",
-//     link: "/catalog/web-development",
-//   },
-//   {
-//     title: "Android Development",
-//     link: "/catalog/Android Development",
-//   },
-// ];
-
 function Navbar() {
   const { token } = useSelector((state) => state.auth)
   const { user } = useSelector((state) => state.profile)
@@ -38,6 +19,7 @@ function Navbar() {
 
   const [subLinks, setSubLinks] = useState([])
   const [loading, setLoading] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false) // NEW
 
   useEffect(() => {
     ;(async () => {
@@ -53,7 +35,10 @@ function Navbar() {
     })()
   }, [])
 
-  // console.log("sub links", subLinks)
+  // Close the mobile menu whenever the route changes
+  useEffect(() => {
+    setShowMobileMenu(false)
+  }, [location])
 
   const matchRoute = (route) => {
     return matchPath({ path: route }, location.pathname)
@@ -61,7 +46,7 @@ function Navbar() {
 
   return (
     <div
-      className={`flex h-14 items-center justify-center border-b-[1px] border-b-richblack-700 ${
+      className={`relative flex h-14 items-center justify-center border-b-[1px] border-b-richblack-700 ${
         location.pathname !== "/" ? "bg-richblack-800" : ""
       } transition-all duration-200`}
     >
@@ -160,10 +145,101 @@ function Navbar() {
           )}
           {token !== null && <ProfileDropdown />}
         </div>
-        <button className="mr-4 md:hidden">
-          <AiOutlineMenu fontSize={24} fill="#AFB2BF" />
+
+        {/* Mobile hamburger button — NOW WIRED UP */}
+        <button
+          className="mr-4 md:hidden"
+          onClick={() => setShowMobileMenu((prev) => !prev)}
+        >
+          {showMobileMenu ? (
+            <AiOutlineClose fontSize={24} fill="#AFB2BF" />
+          ) : (
+            <AiOutlineMenu fontSize={24} fill="#AFB2BF" />
+          )}
         </button>
       </div>
+
+      {/* Mobile dropdown menu — NEW */}
+      {showMobileMenu && (
+        <div className="absolute left-0 top-14 z-[1200] flex w-full flex-col gap-y-2 border-b border-richblack-700 bg-richblack-800 p-4 md:hidden">
+          {NavbarLinks.map((link, index) => (
+            <div key={index}>
+              {link.title === "Catalog" ? (
+                <div className="py-2">
+                  <p className="mb-1 text-richblack-25">{link.title}</p>
+                  {loading ? (
+                    <p className="pl-3 text-sm text-richblack-300">Loading...</p>
+                  ) : subLinks.length ? (
+                    subLinks
+                      .filter((subLink) => subLink?.courses?.length > 0)
+                      .map((subLink, i) => (
+                        <Link
+                          to={`/catalog/${subLink.name
+                            .split(" ")
+                            .join("-")
+                            .toLowerCase()}`}
+                          className="block py-1 pl-3 text-sm text-richblack-100"
+                          key={i}
+                        >
+                          {subLink.name}
+                        </Link>
+                      ))
+                  ) : (
+                    <p className="pl-3 text-sm text-richblack-300">
+                      No Courses Found
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <Link to={link?.path} className="block py-2">
+                  <p
+                    className={`${
+                      matchRoute(link?.path)
+                        ? "text-yellow-25"
+                        : "text-richblack-25"
+                    }`}
+                  >
+                    {link.title}
+                  </p>
+                </Link>
+              )}
+            </div>
+          ))}
+
+          <div className="my-2 border-t border-richblack-700 pt-3">
+            {user && user?.accountType !== ACCOUNT_TYPE.INSTRUCTOR && (
+              <Link
+                to="/dashboard/cart"
+                className="mb-3 flex items-center gap-x-2 text-richblack-100"
+              >
+                <AiOutlineShoppingCart className="text-xl" />
+                <span>Cart ({totalItems})</span>
+              </Link>
+            )}
+
+            {token === null && (
+              <div className="flex gap-x-3">
+                <Link to="/login" className="flex-1">
+                  <button className="w-full rounded-[8px] border border-richblack-700 bg-richblack-700 px-[12px] py-[8px] text-richblack-100">
+                    Log in
+                  </button>
+                </Link>
+                <Link to="/signup" className="flex-1">
+                  <button className="w-full rounded-[8px] border border-richblack-700 bg-richblack-700 px-[12px] py-[8px] text-richblack-100">
+                    Sign up
+                  </button>
+                </Link>
+              </div>
+            )}
+
+            {token !== null && (
+              <div className="flex justify-start">
+                <ProfileDropdown />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
