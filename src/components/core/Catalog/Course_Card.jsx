@@ -23,10 +23,10 @@ function Course_Card({ course, Height }) {
         <div className="">
           <div className="rounded-lg">
             <img
-              src={course?.thumbnail}
-              alt="course thumnail"
-              className={`${Height} w-full rounded-xl object-cover `}
-            />
+  src={course?.thumbnail}
+  alt="course thumbnail"
+  className="aspect-video w-full rounded-xl object-cover"
+/>
           </div>
           <div className="flex flex-col gap-2 px-1 py-3">
             <p className="text-xl text-richblack-5">{course?.courseName}</p>
