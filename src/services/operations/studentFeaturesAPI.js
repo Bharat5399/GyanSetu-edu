@@ -64,6 +64,16 @@ export async function BuyCourse(
     }
     console.log("PAYMENT RESPONSE FROM BACKEND............", orderResponse.data)
 
+    // ── NEW: Free course — backend already enrolled the student, skip Razorpay ──
+    if (orderResponse.data.free) {
+      toast.success("Enrolled Successfully!")
+      navigate("/dashboard/enrolled-courses")
+      dispatch(resetCart())
+      toast.dismiss(toastId)
+      return
+    }
+    // ──────────────────────────────────────────────────────────────────────────
+
     // Opening the Razorpay SDK
     const options = {
       key: process.env.REACT_APP_RAZORPAY_KEY,
