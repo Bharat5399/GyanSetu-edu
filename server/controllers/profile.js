@@ -236,3 +236,48 @@ exports.instructorDashboard = async (req, res) => {
     res.status(500).json({ message: "Server Error" })
   }
 }
+const express = require("express")
+const router = express.Router()
+const { auth, isInstructor, isAdmin } = require("../middleware/auth")
+const {
+  deleteAccount,
+  updateProfile,
+  getAllUserDetails,
+  updateDisplayPicture,
+  getEnrolledCourses,
+  instructorDashboard,
+  getAllUsers,
+} = require("../controllers/profile")
+
+// ********************************************************************************************************
+//                                      Profile routes
+// ********************************************************************************************************
+// Delet User Account
+router.delete("/deleteProfile", auth, deleteAccount)
+router.put("/updateProfile", auth, updateProfile)
+router.get("/getUserDetails", auth, getAllUserDetails)
+// Get Enrolled Courses
+router.get("/getEnrolledCourses", auth, getEnrolledCourses)
+router.put("/updateDisplayPicture", auth, updateDisplayPicture)
+router.get("/instructorDashboard", auth, isInstructor, instructorDashboard)
+router.get("/getAllUsers", auth, isAdmin, getAllUsers)
+
+module.exports = router
+// Get all users (Admin only)
+exports.getAllUsers = async (req, res) => {
+  try {
+    const allUsers = await User.find({})
+      .select("-password")
+      .populate("additionalDetails")
+    return res.status(200).json({
+      success: true,
+      data: allUsers,
+    })
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Could not fetch users",
+      error: error.message,
+    })
+  }
+}

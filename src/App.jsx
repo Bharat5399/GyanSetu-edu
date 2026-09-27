@@ -10,6 +10,7 @@ import Navbar from "./components/Common/Navbar"
 import OpenRoute from "./components/core/Auth/OpenRoute"
 import PrivateRoute from "./components/core/Auth/PrivateRoute"
 import AddCourse from "./components/core/Dashboard/AddCourse"
+import AdminPanel from "./pages/Dashboard/AdminPanel"
 import Cart from "./components/core/Dashboard/Cart"
 import EditCourse from "./components/core/Dashboard/EditCourse"
 import EnrolledCourses from "./components/core/Dashboard/EnrolledCourses"
@@ -130,6 +131,10 @@ function App() {
               />
               <Route path="/dashboard/cart" element={<Cart />} />
             </>
+          )}
+          {/* Route only for Admin */}
+          {user?.accountType === ACCOUNT_TYPE.ADMIN && (
+            <Route path="dashboard/admin" element={<AdminPanel />} />
           )}
           <Route path="dashboard/settings" element={<Settings />} />
         </Route>

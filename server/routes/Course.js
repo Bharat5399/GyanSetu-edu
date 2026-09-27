@@ -49,7 +49,7 @@ const {
   getProgressPercentage,
 } = require("../controllers/courseProgress")
 // Importing Middlewares
-const { auth, isInstructor, isStudent, isAdmin } = require("../middleware/auth")
+const { auth, isInstructor, isStudent, isAdmin, isInstructorOrAdmin } = require("../middleware/auth")
 
 // ********************************************************************************************************
 //                                      Course routes
@@ -84,7 +84,7 @@ router.post("/updateCourseProgress", auth, isStudent, updateCourseProgress)
 // To get Course Progress
 // router.post("/getProgressPercentage", auth, isStudent, getProgressPercentage)
 // Delete a Course
-router.delete("/deleteCourse", deleteCourse)
+router.delete("/deleteCourse", auth, isInstructorOrAdmin, deleteCourse)
 
 // ********************************************************************************************************
 //                                      Category routes (Only by Admin)
