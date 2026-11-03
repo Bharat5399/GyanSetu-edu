@@ -4,6 +4,7 @@ const crypto = require("crypto")
 const User = require("../models/User")
 const mailSender = require("../utils/mailSender")
 const mongoose = require("mongoose")
+const Order = require("../models/Order")
 const {
   courseEnrollmentEmail,
 } = require("../mail/templates/courseEnrollmentEmail")
@@ -60,10 +61,14 @@ exports.capturePayment = async (req, res) => {
   }
   // ──────────────────────────────────────────────────────────────
 
-  const options = {
+   const options = {
     amount: total_amount * 100,
     currency: "INR",
     receipt: Math.random(Date.now()).toString(),
+    notes: {
+      userId: String(userId),
+      courses: courses.join(","),
+    },
   }
 
   try {
@@ -172,7 +177,18 @@ const enrollStudents = async (courses, userId, res) => {
           .json({ success: false, error: "Course not found" })
       }
       console.log("Updated course: ", enrolledCourse)
-
+      // Record the sale for analytics. Kept in its own try/catch so a
+      // failure here can never block the enrollment itself.
+      try {
+        await Order.create({
+          student: userId,
+          course: enrolledCourse._id,
+          instructor: enrolledCourse.instructor,
+          amount: enrolledCourse.price || 0,
+        })
+      } catch (orderError) {
+        console.log("Could not record order: ", orderError.message)
+      }
       const courseProgress = await CourseProgress.create({
         courseID: courseId,
         userId: userId,
